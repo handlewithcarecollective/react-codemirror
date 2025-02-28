@@ -16,6 +16,9 @@ jobs:
         with:
           node-version: 22.x
 
+      - name: Corepack
+        run: corepack enable
+
       - name: Install dependencies
         run: yarn
 
@@ -44,6 +47,9 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 22.x
+
+      - name: Corepack
+        run: corepack enable
 
       - name: Install dependencies
         run: yarn
