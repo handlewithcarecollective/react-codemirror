@@ -2,7 +2,7 @@ import { EditorContext } from "../contexts/EditorContext.js";
 import { EditorStateContext } from "../contexts/EditorStateContext.js";
 import React, { type ReactNode, useMemo, useState } from "react";
 import { LayoutGroup } from "./LayoutGroup.js";
-import { useView, type UseViewOptions } from "../hooks/useView.js";
+import { useEditor, type UseViewOptions } from "../hooks/useEditor.js";
 
 type Props = UseViewOptions & {
   children: ReactNode;
@@ -11,16 +11,21 @@ type Props = UseViewOptions & {
 function CodeMirrorInner({ children, ...config }: Props) {
   const [parent, setParent] = useState<HTMLDivElement | null>(null);
 
-  const { view, state, flushSyncRef } = useView(parent, config);
+  const { view, state, flushSyncRef, beforeSlot, afterSlot } = useEditor(
+    parent,
+    config,
+  );
 
   const editor = useMemo(
     () => ({
       view,
       flushSyncRef,
+      beforeSlot,
+      afterSlot,
       setParent,
       parent,
     }),
-    [flushSyncRef, parent, view],
+    [afterSlot, beforeSlot, flushSyncRef, parent, view],
   );
 
   return (

@@ -1,6 +1,10 @@
 import { EditorState, type Transaction } from "@codemirror/state";
-import { EditorView, type EditorViewConfig } from "@codemirror/view";
-import { useState, useLayoutEffect, useRef, useCallback } from "react";
+import {
+  EditorView,
+  ViewPlugin,
+  type EditorViewConfig,
+} from "@codemirror/view";
+import { useState, useLayoutEffect, useRef, useCallback, useMemo } from "react";
 import { flushSync } from "react-dom";
 
 export type UseViewOptions = Omit<EditorViewConfig, "parent"> & {
@@ -11,7 +15,7 @@ const EMPTY_STATE = EditorState.create();
 
 let didWarnValueDefaultValue = false;
 
-export function useView(
+export function useEditor(
   parent: HTMLDivElement | null,
   options: UseViewOptions,
 ) {
@@ -76,6 +80,31 @@ export function useView(
     dispatchTransactions,
   };
 
+  const [beforeSlot, setBeforeSlot] = useState<HTMLDivElement | null>(null);
+  const [afterSlot, setAfterSlot] = useState<HTMLDivElement | null>(null);
+
+  const slotPlugin = useMemo(
+    () =>
+      ViewPlugin.define((view: EditorView) => {
+        const before = document.createElement("div");
+        before.style.display = "contents";
+        view.dom.prepend(before);
+        setBeforeSlot(before);
+
+        const after = document.createElement("div");
+        after.style.display = "contents";
+        view.dom.append(after);
+        setAfterSlot(after);
+        return {
+          destroy: () => {
+            setBeforeSlot((prev) => (prev === before ? null : prev));
+            setAfterSlot((prev) => (prev === after ? null : prev));
+          },
+        };
+      }),
+    [],
+  );
+
   const [view, setView] = useState<EditorView | null>(null);
 
   useLayoutEffect(() => {
@@ -91,7 +120,11 @@ export function useView(
       return;
     }
     if (!view || view.dom.parentElement !== parent) {
-      const newView = new EditorView({ parent, ...config });
+      const newView = new EditorView({
+        parent,
+        extensions: [slotPlugin],
+        ...config,
+      });
       setView(newView);
       return;
     }
@@ -101,5 +134,5 @@ export function useView(
     }
   });
 
-  return { view, state, flushSyncRef };
+  return { view, state, beforeSlot, afterSlot, flushSyncRef };
 }
