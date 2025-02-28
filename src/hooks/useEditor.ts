@@ -1,4 +1,8 @@
-import { EditorState, type Transaction } from "@codemirror/state";
+import {
+  EditorState,
+  type Extension,
+  type Transaction,
+} from "@codemirror/state";
 import {
   EditorView,
   ViewPlugin,
@@ -19,7 +23,10 @@ export function useEditor(
   parent: HTMLDivElement | null,
   options: UseViewOptions,
 ) {
-  if (process.env["NODE_ENV"] !== "production") {
+  if (
+    typeof process !== "undefined" &&
+    process.env["NODE_ENV"] !== "production"
+  ) {
     if (
       options.defaultState !== undefined &&
       options.state !== undefined &&
@@ -122,8 +129,11 @@ export function useEditor(
     if (!view || view.dom.parentElement !== parent) {
       const newView = new EditorView({
         parent,
-        extensions: [slotPlugin],
         ...config,
+        extensions: [
+          ...((config.extensions as readonly Extension[] | undefined) ?? []),
+          slotPlugin,
+        ],
       });
       setView(newView);
       return;
@@ -133,6 +143,8 @@ export function useEditor(
       view.setState(config.state);
     }
   });
+
+  console.log(state);
 
   return { view, state, beforeSlot, afterSlot, flushSyncRef };
 }

@@ -41,6 +41,7 @@ export default tseslint.config(
             "eslint.config.js",
             "vite.config.ts",
             "lint-staged.config.js",
+            "demo/main.tsx",
           ],
         },
         tsconfigRootDir: import.meta.dirname,
