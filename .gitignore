@@ -1,0 +1,22 @@
+# Compiled code
+/dist/*
+/docs/*
+
+# We need to check in the package.json for /dist/cjs so that
+# consumers know to treat it as cjs
+!/dist/cjs
+/dist/cjs/*
+!/dist/cjs/package.json
+
+# Yarn dependencies
+.yarn/*
+!.yarn/versions
+
+# Various tooling caches
+node_modules
+.eslintcache
+tsconfig.buildinfo
+
+# direnv/devenv config and cache
+local.envrc
+/.devenv-initialized

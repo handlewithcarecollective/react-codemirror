@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "@tsconfig/strictest",
+  "include": ["src/**/*", "src/**/*.json"],
+  "compilerOptions": {
+    "lib": ["DOM", "ES2022"],
+    "outDir": "dist/types",
+    "rootDir": "src",
+    "declaration": true,
+    "noEmit": true,
+    "moduleResolution": "nodenext",
+    "module": "nodenext",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "preserveSymlinks": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "incremental": true,
+    "jsx": "react",
+    "types": ["node"]
+  }
+}

@@ -1,0 +1,1 @@
+./scripts/if-no-version-change.sh yarn version check
