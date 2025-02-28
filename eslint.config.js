@@ -1,5 +1,8 @@
 // @ts-check
 import eslint from "@eslint/js";
+import react from "eslint-plugin-react";
+import reactHooks from "eslint-plugin-react-hooks";
+import globals from "globals";
 import tseslint from "typescript-eslint";
 import { includeIgnoreFile } from "@eslint/compat";
 import path from "node:path";
@@ -14,6 +17,22 @@ export default tseslint.config(
   eslint.configs.recommended,
   tseslint.configs.strictTypeChecked,
   tseslint.configs.stylisticTypeChecked,
+  reactHooks.configs["recommended-latest"],
+  {
+    rules: {
+      "react-hooks/exhaustive-deps": [
+        "warn",
+        {
+          additionalHooks:
+            "(useEditorEffect|useLayoutGroupEffect|useClientLayoutEffect)$",
+        },
+      ],
+      "@typescript-eslint/consistent-type-imports": [
+        "error",
+        { fixStyle: "inline-type-imports" },
+      ],
+    },
+  },
   {
     languageOptions: {
       parserOptions: {
@@ -27,5 +46,27 @@ export default tseslint.config(
         tsconfigRootDir: import.meta.dirname,
       },
     },
+  },
+  {
+    files: ["**/*.{js,jsx,mjs,cjs,ts,tsx}"],
+    plugins: {
+      react,
+    },
+    settings: {
+      react: {
+        version: "detect",
+      },
+    },
+    languageOptions: {
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+      globals: {
+        ...globals.browser,
+      },
+    },
+    rules: react.configs.recommended.rules,
   },
 );

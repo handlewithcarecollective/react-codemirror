@@ -1,0 +1,105 @@
+import { EditorState, type Transaction } from "@codemirror/state";
+import { EditorView, type EditorViewConfig } from "@codemirror/view";
+import { useState, useLayoutEffect, useRef, useCallback } from "react";
+import { flushSync } from "react-dom";
+
+export type UseViewOptions = Omit<EditorViewConfig, "parent"> & {
+  defaultState?: EditorState;
+};
+
+const EMPTY_STATE = EditorState.create();
+
+let didWarnValueDefaultValue = false;
+
+export function useView(
+  parent: HTMLDivElement | null,
+  options: UseViewOptions,
+) {
+  if (process.env["NODE_ENV"] !== "production") {
+    if (
+      options.defaultState !== undefined &&
+      options.state !== undefined &&
+      !didWarnValueDefaultValue
+    ) {
+      console.error(
+        "A component contains a ProseMirror editor with both value and defaultValue props. " +
+          "ProseMirror editors must be either controlled or uncontrolled " +
+          "(specify either the state prop, or the defaultState prop, but not both). " +
+          "Decide between using a controlled or uncontrolled ProseMirror editor " +
+          "and remove one of these props. More info: " +
+          "https://reactjs.org/link/controlled-components",
+      );
+      didWarnValueDefaultValue = true;
+    }
+  }
+
+  const flushSyncRef = useRef(true);
+
+  const defaultState = options.defaultState ?? EMPTY_STATE;
+  const [_state, setState] = useState<EditorState>(defaultState);
+  const state = options.state ?? _state;
+
+  const dispatchTransactions = useCallback(
+    function dispatchTransactions(
+      trs: readonly Transaction[],
+      view: EditorView,
+    ) {
+      const newState = trs[trs.length - 1]?.state;
+      if (!newState) return;
+
+      if (flushSyncRef.current) {
+        flushSync(() => {
+          if (!options.state) {
+            setState(newState);
+          }
+
+          if (options.dispatchTransactions) {
+            options.dispatchTransactions(trs, view);
+          }
+        });
+      } else {
+        if (!options.state) {
+          setState(newState);
+        }
+
+        if (options.dispatchTransactions) {
+          options.dispatchTransactions(trs, view);
+        }
+      }
+    },
+    [options],
+  );
+
+  const config = {
+    ...options,
+    state,
+    dispatchTransactions,
+  };
+
+  const [view, setView] = useState<EditorView | null>(null);
+
+  useLayoutEffect(() => {
+    return () => {
+      view?.destroy();
+    };
+  }, [view]);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useLayoutEffect(() => {
+    if (!parent) {
+      setView(null);
+      return;
+    }
+    if (!view || view.dom.parentElement !== parent) {
+      const newView = new EditorView({ parent, ...config });
+      setView(newView);
+      return;
+    }
+
+    if (view.state !== config.state) {
+      view.setState(config.state);
+    }
+  });
+
+  return { view, state, flushSyncRef };
+}
