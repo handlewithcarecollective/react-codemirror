@@ -285,6 +285,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@codemirror/merge@npm:^6.9.0":
+  version: 6.9.0
+  resolution: "@codemirror/merge@npm:6.9.0"
+  dependencies:
+    "@codemirror/language": "npm:^6.0.0"
+    "@codemirror/state": "npm:^6.0.0"
+    "@codemirror/view": "npm:^6.17.0"
+    "@lezer/highlight": "npm:^1.0.0"
+    style-mod: "npm:^4.1.0"
+  checksum: 10/16d4f745c113e93a4da120a4f854743451c4dce9ba46dcba1a53926714a1f8396742b570764ce044a3c647de77c91a24c7d05af3b3ea4620eb516fe466a3bc5e
+  languageName: node
+  linkType: hard
+
 "@codemirror/search@npm:^6.0.0":
   version: 6.5.10
   resolution: "@codemirror/search@npm:6.5.10"
@@ -599,6 +612,7 @@ __metadata:
   resolution: "@handlewithcare/react-codemirror@workspace:."
   dependencies:
     "@codemirror/lang-javascript": "npm:^6.2.3"
+    "@codemirror/merge": "npm:^6.9.0"
     "@codemirror/state": "npm:^6.5.2"
     "@codemirror/theme-one-dark": "npm:^6.1.2"
     "@codemirror/view": "npm:^6.36.3"

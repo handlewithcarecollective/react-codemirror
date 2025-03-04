@@ -1,3 +1,4 @@
+import { diff } from "@codemirror/merge";
 import {
   EditorState,
   type Extension,
@@ -137,19 +138,20 @@ export function useEditor(
       !view.state.doc.eq(state.doc) ||
       !view.state.selection.eq(state.selection)
     ) {
-      flushSyncRef.current = false;
+      const current = view.state.doc.toString();
+      const incoming = state.doc.toString();
+      const diffed = diff(current, incoming);
+
       view.update([
         view.state.update({
-          changes: {
-            from: 0,
-            to: view.state.doc.toString().length,
-            insert: state.doc.toString(),
-          },
+          changes: diffed.map((change) => ({
+            from: change.fromA,
+            to: change.toA,
+            insert: incoming.slice(change.fromB, change.toB),
+          })),
           selection: state.selection,
         }),
       ]);
-
-      flushSyncRef.current = true;
     }
   });
 
