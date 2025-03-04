@@ -5,10 +5,10 @@ import {
 } from "@codemirror/state";
 import {
   EditorView,
-  ViewPlugin,
   type EditorViewConfig,
+  ViewPlugin,
 } from "@codemirror/view";
-import { useState, useLayoutEffect, useRef, useCallback, useMemo } from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 
 export type UseViewOptions = Omit<EditorViewConfig, "parent"> & {
@@ -33,10 +33,10 @@ export function useEditor(
       !didWarnValueDefaultValue
     ) {
       console.error(
-        "A component contains a ProseMirror editor with both value and defaultValue props. " +
-          "ProseMirror editors must be either controlled or uncontrolled " +
+        "A component contains a CodeMirror editor with both value and defaultValue props. " +
+          "CodeMirror editors must be either controlled or uncontrolled " +
           "(specify either the state prop, or the defaultState prop, but not both). " +
-          "Decide between using a controlled or uncontrolled ProseMirror editor " +
+          "Decide between using a controlled or uncontrolled CodeMirror editor " +
           "and remove one of these props. More info: " +
           "https://reactjs.org/link/controlled-components",
       );
@@ -55,28 +55,22 @@ export function useEditor(
       trs: readonly Transaction[],
       view: EditorView,
     ) {
-      const newState = trs[trs.length - 1]?.state;
-      if (!newState) return;
+      const wrapper = flushSyncRef.current
+        ? flushSync
+        : (cb: () => void) => {
+            cb();
+          };
 
-      if (flushSyncRef.current) {
-        flushSync(() => {
-          if (!options.state) {
-            setState(newState);
-          }
-
-          if (options.dispatchTransactions) {
-            options.dispatchTransactions(trs, view);
-          }
-        });
-      } else {
+      wrapper(() => {
         if (!options.state) {
-          setState(newState);
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          setState(trs[trs.length - 1]!.state);
         }
 
         if (options.dispatchTransactions) {
           options.dispatchTransactions(trs, view);
         }
-      }
+      });
     },
     [options],
   );
@@ -139,12 +133,25 @@ export function useEditor(
       return;
     }
 
-    if (view.state !== config.state) {
-      view.setState(config.state);
+    if (
+      !view.state.doc.eq(state.doc) ||
+      !view.state.selection.eq(state.selection)
+    ) {
+      flushSyncRef.current = false;
+      view.update([
+        view.state.update({
+          changes: {
+            from: 0,
+            to: view.state.doc.toString().length,
+            insert: state.doc.toString(),
+          },
+          selection: state.selection,
+        }),
+      ]);
+
+      flushSyncRef.current = true;
     }
   });
-
-  console.log(state);
 
   return { view, state, beforeSlot, afterSlot, flushSyncRef };
 }

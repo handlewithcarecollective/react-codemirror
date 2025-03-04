@@ -1,5 +1,5 @@
 import { type EditorView } from "@codemirror/view";
-import { createContext, type MutableRefObject } from "react";
+import { type MutableRefObject, createContext } from "react";
 
 export interface EditorContextValue {
   view: EditorView | null;

@@ -1,11 +1,9 @@
-import { EditorState, type Transaction } from "@codemirror/state";
-import React, { useCallback, useState } from "react";
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-
-import { basicSetup } from "codemirror";
 import { javascript } from "@codemirror/lang-javascript";
+import { EditorState, type Transaction } from "@codemirror/state";
 import { oneDark } from "@codemirror/theme-one-dark";
+import { basicSetup } from "codemirror";
+import React, { StrictMode, useCallback, useState } from "react";
+import { createRoot } from "react-dom/client";
 
 import { CodeMirror, CodeMirrorEditor } from "../src/index.js";
 

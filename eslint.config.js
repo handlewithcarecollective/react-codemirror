@@ -1,12 +1,14 @@
 // @ts-check
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+import { includeIgnoreFile } from "@eslint/compat";
 import eslint from "@eslint/js";
+import { flatConfigs as importPlugin } from "eslint-plugin-import";
 import react from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
 import globals from "globals";
 import tseslint from "typescript-eslint";
-import { includeIgnoreFile } from "@eslint/compat";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,6 +20,9 @@ export default tseslint.config(
   tseslint.configs.strictTypeChecked,
   tseslint.configs.stylisticTypeChecked,
   reactHooks.configs["recommended-latest"],
+  // This package isn't typed properly
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+  importPlugin.recommended,
   {
     rules: {
       "react-hooks/exhaustive-deps": [
@@ -31,7 +36,33 @@ export default tseslint.config(
         "error",
         { fixStyle: "inline-type-imports" },
       ],
+      "no-console": ["error", { allow: ["error"] }],
+      "import/extensions": ["error", "ignorePackages"],
+      "import/order": [
+        "error",
+        {
+          alphabetize: {
+            order: "asc",
+          },
+          groups: ["builtin", "external", "parent", "sibling", "index"],
+          "newlines-between": "always",
+          warnOnUnassignedImports: true,
+        },
+      ],
+      "sort-imports": [
+        "error",
+        {
+          allowSeparatedGroups: true,
+          ignoreDeclarationSort: true,
+        },
+      ],
+      "import/no-unresolved": "off", // Typescript does this better!
     },
+  },
+  {
+    files: ["**/*.{ts,tsx}"],
+    // @ts-expect-error This package isn't typed properly
+    extends: [importPlugin.typescript],
   },
   {
     languageOptions: {
@@ -54,6 +85,11 @@ export default tseslint.config(
       react,
     },
     settings: {
+      // "import/extensions": [".js", ".jsx", ".ts", ".tsx"],
+      // "import/external-module-folders": ["node_modules"],
+      // "import/parsers": {
+      //   "@typescript-eslint/parser": [".ts", ".tsx"],
+      // },
       react: {
         version: "detect",
       },

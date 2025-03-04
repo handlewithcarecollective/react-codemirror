@@ -1,8 +1,10 @@
+import React, { type ReactNode, useMemo, useState } from "react";
+
 import { EditorContext } from "../contexts/EditorContext.js";
 import { EditorStateContext } from "../contexts/EditorStateContext.js";
-import React, { type ReactNode, useMemo, useState } from "react";
+import { type UseViewOptions, useEditor } from "../hooks/useEditor.js";
+
 import { LayoutGroup } from "./LayoutGroup.js";
-import { useEditor, type UseViewOptions } from "../hooks/useEditor.js";
 
 type Props = UseViewOptions & {
   children: ReactNode;

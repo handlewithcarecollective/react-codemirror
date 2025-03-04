@@ -1,6 +1,7 @@
 import React, { type ReactNode, useContext } from "react";
-import { EditorContext } from "../contexts/EditorContext.js";
 import { createPortal } from "react-dom";
+
+import { EditorContext } from "../contexts/EditorContext.js";
 
 function InnerCodeMirrorEditor() {
   const { setParent } = useContext(EditorContext);
