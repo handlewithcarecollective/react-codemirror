@@ -31,7 +31,6 @@ function DemoEditor() {
         dispatchTransactions={dispatchTransactions}
         extensions={extensions}
       >
-        <CodeMirrorEditor.Before>Before!</CodeMirrorEditor.Before>
         <CodeMirrorEditor />
       </CodeMirror>
     </main>

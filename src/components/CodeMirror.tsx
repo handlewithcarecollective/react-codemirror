@@ -13,21 +13,15 @@ type Props = UseViewOptions & {
 function CodeMirrorInner({ children, ...config }: Props) {
   const [parent, setParent] = useState<HTMLDivElement | null>(null);
 
-  const { view, state, flushSyncRef, beforeSlot, afterSlot } = useEditor(
-    parent,
-    config,
-  );
+  const { view, state, flushSyncRef } = useEditor(parent, config);
 
   const editor = useMemo(
     () => ({
       view,
       flushSyncRef,
-      beforeSlot,
-      afterSlot,
       setParent,
-      parent,
     }),
-    [afterSlot, beforeSlot, flushSyncRef, parent, view],
+    [flushSyncRef, view],
   );
 
   return (

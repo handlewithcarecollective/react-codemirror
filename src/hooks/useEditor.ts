@@ -1,15 +1,7 @@
 import { diff } from "@codemirror/merge";
-import {
-  EditorState,
-  type Extension,
-  type Transaction,
-} from "@codemirror/state";
-import {
-  EditorView,
-  type EditorViewConfig,
-  ViewPlugin,
-} from "@codemirror/view";
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { EditorState, type Transaction } from "@codemirror/state";
+import { EditorView, type EditorViewConfig } from "@codemirror/view";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 
 export type UseViewOptions = Omit<EditorViewConfig, "parent"> & {
@@ -82,31 +74,6 @@ export function useEditor(
     dispatchTransactions,
   };
 
-  const [beforeSlot, setBeforeSlot] = useState<HTMLDivElement | null>(null);
-  const [afterSlot, setAfterSlot] = useState<HTMLDivElement | null>(null);
-
-  const slotPlugin = useMemo(
-    () =>
-      ViewPlugin.define((view: EditorView) => {
-        const before = document.createElement("div");
-        before.style.display = "contents";
-        view.dom.prepend(before);
-        setBeforeSlot(before);
-
-        const after = document.createElement("div");
-        after.style.display = "contents";
-        view.dom.append(after);
-        setAfterSlot(after);
-        return {
-          destroy: () => {
-            setBeforeSlot((prev) => (prev === before ? null : prev));
-            setAfterSlot((prev) => (prev === after ? null : prev));
-          },
-        };
-      }),
-    [],
-  );
-
   const [view, setView] = useState<EditorView | null>(null);
 
   useLayoutEffect(() => {
@@ -125,10 +92,6 @@ export function useEditor(
       const newView = new EditorView({
         parent,
         ...config,
-        extensions: [
-          ...((config.extensions as readonly Extension[] | undefined) ?? []),
-          slotPlugin,
-        ],
       });
       setView(newView);
       return;
@@ -138,6 +101,9 @@ export function useEditor(
       !view.state.doc.eq(state.doc) ||
       !view.state.selection.eq(state.selection)
     ) {
+      // This can take a few milliseconds on a large document,
+      // but it prevents codemirror from having to redo syntax
+      // highlighting, etc, from scratch on each update
       const current = view.state.doc.toString();
       const incoming = state.doc.toString();
       const diffed = diff(current, incoming);
@@ -155,5 +121,5 @@ export function useEditor(
     }
   });
 
-  return { view, state, beforeSlot, afterSlot, flushSyncRef };
+  return { view, state, flushSyncRef };
 }

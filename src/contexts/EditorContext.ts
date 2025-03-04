@@ -7,8 +7,6 @@ export interface EditorContextValue {
   // work for folks using versions of React older than v19
   // eslint-disable-next-line @typescript-eslint/no-deprecated
   flushSyncRef: MutableRefObject<boolean>;
-  beforeSlot: HTMLDivElement | null;
-  afterSlot: HTMLDivElement | null;
   setParent: (el: HTMLDivElement | null) => void;
 }
 
