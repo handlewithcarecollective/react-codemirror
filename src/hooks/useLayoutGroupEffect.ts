@@ -13,6 +13,6 @@ export function useLayoutGroupEffect(
   const register = useContext(LayoutGroupContext);
   // The rule for hooks wants to statically verify the deps,
   // but the dependencies are up to the caller, not this implementation.
-
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useClientLayoutEffect(() => register(effect), deps);
 }
