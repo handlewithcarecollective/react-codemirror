@@ -26,7 +26,9 @@ function CodeMirrorInner({ children, ...config }: Props) {
 
   return (
     <EditorContext.Provider value={editor}>
-      <EditorStateContext value={state}>{children}</EditorStateContext>
+      <EditorStateContext.Provider value={state}>
+        {children}
+      </EditorStateContext.Provider>
     </EditorContext.Provider>
   );
 }
