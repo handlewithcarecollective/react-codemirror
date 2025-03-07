@@ -1,8 +1,7 @@
 import { diff } from "@codemirror/merge";
 import { EditorState, type Transaction } from "@codemirror/state";
 import { EditorView, type EditorViewConfig } from "@codemirror/view";
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
-import { flushSync } from "react-dom";
+import { useCallback, useLayoutEffect, useState } from "react";
 
 export type UseViewOptions = Omit<EditorViewConfig, "parent"> & {
   defaultState?: EditorState;
@@ -37,8 +36,6 @@ export function useEditor(
     }
   }
 
-  const flushSyncRef = useRef(true);
-
   const defaultState = options.defaultState ?? EMPTY_STATE;
   const [_state, setState] = useState<EditorState>(defaultState);
   const state = options.state ?? _state;
@@ -48,22 +45,14 @@ export function useEditor(
       trs: readonly Transaction[],
       view: EditorView,
     ) {
-      const wrapper = flushSyncRef.current
-        ? flushSync
-        : (cb: () => void) => {
-            cb();
-          };
+      if (!options.state) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        setState(trs[trs.length - 1]!.state);
+      }
 
-      wrapper(() => {
-        if (!options.state) {
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          setState(trs[trs.length - 1]!.state);
-        }
-
-        if (options.dispatchTransactions) {
-          options.dispatchTransactions(trs, view);
-        }
-      });
+      if (options.dispatchTransactions) {
+        options.dispatchTransactions(trs, view);
+      }
     },
     [options],
   );
@@ -121,5 +110,5 @@ export function useEditor(
     }
   });
 
-  return { view, state, flushSyncRef };
+  return { view, state };
 }

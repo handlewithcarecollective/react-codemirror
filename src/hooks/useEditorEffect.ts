@@ -25,7 +25,7 @@ export function useEditorEffect(
   effect: (editorView: EditorView) => void | (() => void),
   dependencies?: DependencyList,
 ) {
-  const { view, flushSyncRef } = useContext(EditorContext);
+  const { view } = useContext(EditorContext);
 
   // The rules of hooks want `effect` to be included in the
   // dependency list, but dependency issues for `effect` will
@@ -39,10 +39,7 @@ export function useEditorEffect(
     () => {
       // @ts-expect-error We're making use of knowledge of internal attributes here
       if (view?.docView) {
-        flushSyncRef.current = false;
-        const result = effect(view);
-        flushSyncRef.current = true;
-        return result;
+        return effect(view);
       }
     },
     // The rules of hooks want to be able to statically
