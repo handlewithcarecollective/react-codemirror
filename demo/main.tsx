@@ -1,17 +1,12 @@
 import { javascript } from "@codemirror/lang-javascript";
 import { EditorState, type Transaction } from "@codemirror/state";
-import { oneDark } from "@codemirror/theme-one-dark";
 import { basicSetup } from "codemirror";
 import React, { StrictMode, useCallback, useState } from "react";
 import { createRoot } from "react-dom/client";
 
 import { CodeMirror, CodeMirrorEditor } from "../src/index.js";
 
-const extensions = [
-  basicSetup,
-  javascript({ jsx: true, typescript: true }),
-  oneDark,
-];
+const extensions = [basicSetup, javascript({ jsx: true, typescript: true })];
 
 const editorState = EditorState.create({ doc: `const a = "a"`, extensions });
 
