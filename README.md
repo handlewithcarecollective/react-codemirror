@@ -75,26 +75,33 @@ The `CodeMirrorEditor` is where the actual CodeMirror editor will be
 instantiated. It can be nested anywhere as a descendant of the `CodeMirror`
 component.
 
-The `useCompartment` hook can be used to configure dynamic CodeMirror
-extensions. Here’s an example, using a simple language picker:
+The `useReconfigure` hook can be used to configure dynamic CodeMirror
+extensions. Here’s an example, using a simple theme switcher:
 
 ```tsx
-// LanguagePicker.tsx
-import { htmlLanguage, html } from "@codemirror/lang-html";
-import { language, type Language } from "@codemirror/language";
-import { javascript, javascriptLanguage } from "@codemirror/lang-javascript";
+// ThemePicker.tsx
+import { oneDark } from "@codemirror/theme-one-dark";
+import {
+  useEditorState,
+  useReconfigure,
+} from "@handlewithcare/react-codemirror";
 
-interface Props {
-  value: Language;
-  onChange: (lang: Language) => void;
-}
+export const themeCompartment = new Compartment();
 
-function LanguagePicker({ value, onChange }: Props) {
+export function ThemePicker() {
+  const state = useEditorState();
+  const theme = themeCompartment.get(state);
+  const dark = theme === oneDark;
+  const reconfigureTheme = useReconfigure(themeCompartment);
+
   return (
-    <Select value={language} onChange={onChange}>
-      <Option value={htmlLanguage}>HTML</Option>
-      <Option value={javascriptLanguage}>JavaScript</Option>
-    </Select>
+    <button
+      onClick={() => {
+        reconfigureTheme(dark ? [] : oneDark);
+      }}
+    >
+      Enable {dark ? "light" : "dark"} mode
+    </button>
   );
 }
 
@@ -102,17 +109,19 @@ function LanguagePicker({ value, onChange }: Props) {
 import { javascript } from "@codemirror/lang-javascript";
 import { language } from "@codemirror/language";
 import { EditorState, type Transaction } from "@codemirror/state";
-import { CodeMirror, CodeMirrorEditor } from "@handlewithcare/react-codemirror";
+import {
+  CodeMirror,
+  CodeMirrorEditor,
+  useReconfigure,
+} from "@handlewithcare/react-codemirror";
 import { basicSetup } from "codemirror";
 import React, { StrictMode, useCallback, useState } from "react";
 
-import { LanguagePicker } from "./LanguagePicker.tsx";
+import { ThemePicker, themeCompartment } from "./ThemePicker.tsx";
+
+const extensions = [basicSetup, themeCompartment.of([])];
 
 function CodeEditor() {
-  const [languageExt, reconfigureLanguage] = useCompartment(javascript());
-
-  const extensions = [basicSetup, languageExt];
-
   const [state, setState] = useState(() =>
     EditorState.create({ doc: "", extensions }),
   );
@@ -127,10 +136,7 @@ function CodeEditor() {
       dispatchTransactions={dispatchTransactions}
       extensions={extensions}
     >
-      <LanguagePicker
-        value={state.facet(language)}
-        onChange={(lang) => reconfigureLanguage(lang)}
-      />
+      <ThemePicker />
       <CodeMirrorEditor />
     </CodeMirror>
   );
@@ -274,50 +280,38 @@ Provides access to the current EditorState value.
 ### `useCompartment`
 
 ```ts
-function useCompartment(
-  initialExtension: Extension,
-): readonly [Extension, (extension: Extension) => void];
+function useReconfigure(
+  compartment: Compartment,
+): (extension: Extension) => void;
 ```
 
-Returns a compartment of the provided extension, and a method to reconfigure it.
+Returns a reconfigure function that will reconfigure the provided Compartment.
 
 Example usage:
 
 ```tsx
-import { javascript } from "@codemirror/lang-javascript";
-import { language } from "@codemirror/language";
-import { EditorState, type Transaction } from "@codemirror/state";
-import { CodeMirror, CodeMirrorEditor } from "@handlewithcare/react-codemirror";
-import { basicSetup } from "codemirror";
-import React, { StrictMode, useCallback, useState } from "react";
+import { oneDark } from "@codemirror/theme-one-dark";
+import {
+  useEditorState,
+  useReconfigure,
+} from "@handlewithcare/react-codemirror";
 
-import { LanguagePicker } from "./LanguagePicker.tsx";
+export const themeCompartment = new Compartment();
 
-function CodeEditor() {
-  const [languageExt, reconfigureLanguage] = useCompartment(javascript());
-
-  const extensions = [basicSetup, languageExt];
-
-  const [state, setState] = useState(() =>
-    EditorState.create({ doc: "", extensions }),
-  );
-
-  const dispatchTransactions = useCallback((trs: readonly Transaction[]) => {
-    setState(trs[trs.length - 1]!.state);
-  }, []);
+export function ThemePicker() {
+  const state = useEditorState();
+  const theme = themeCompartment.get(state);
+  const dark = theme === oneDark;
+  const reconfigureTheme = useReconfigure(themeCompartment);
 
   return (
-    <CodeMirror
-      state={state}
-      dispatchTransactions={dispatchTransactions}
-      extensions={extensions}
+    <button
+      onClick={() => {
+        reconfigureTheme(dark ? [] : oneDark);
+      }}
     >
-      <LanguagePicker
-        value={state.facet(language)}
-        onChange={(lang) => reconfigureLanguage(lang)}
-      />
-      <CodeMirrorEditor />
-    </CodeMirror>
+      Enable {dark ? "light" : "dark"} mode
+    </button>
   );
 }
 ```

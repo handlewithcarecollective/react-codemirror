@@ -86,6 +86,15 @@ export function useEditor(
       return;
     }
 
+    // Fully replace the state after reconfiguration. We don't have
+    // access to the effects that were used to produce the new state
+    // config, so we have to just do a brute force replace
+    // @ts-expect-error Internal properties
+    if (view.state.config !== state.config) {
+      view.setState(state);
+      return;
+    }
+
     if (
       !view.state.doc.eq(state.doc) ||
       !view.state.selection.eq(state.selection)

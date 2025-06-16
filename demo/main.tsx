@@ -1,14 +1,43 @@
 import { javascript } from "@codemirror/lang-javascript";
-import { EditorState, type Transaction } from "@codemirror/state";
+import { Compartment, EditorState, type Transaction } from "@codemirror/state";
+import { oneDark } from "@codemirror/theme-one-dark";
 import { basicSetup } from "codemirror";
 import React, { StrictMode, useCallback, useState } from "react";
 import { createRoot } from "react-dom/client";
 
-import { CodeMirror, CodeMirrorEditor } from "../src/index.js";
+import {
+  CodeMirror,
+  CodeMirrorEditor,
+  useEditorState,
+  useReconfigure,
+} from "../src/index.js";
 
-const extensions = [basicSetup, javascript({ jsx: true, typescript: true })];
+const themeCompartment = new Compartment();
+
+const extensions = [
+  basicSetup,
+  javascript({ jsx: true, typescript: true }),
+  themeCompartment.of(oneDark),
+];
 
 const editorState = EditorState.create({ doc: `const a = "a"`, extensions });
+
+function ThemePicker() {
+  const state = useEditorState();
+  const theme = themeCompartment.get(state);
+  const dark = theme === oneDark;
+  const reconfigureTheme = useReconfigure(themeCompartment);
+
+  return (
+    <button
+      onClick={() => {
+        reconfigureTheme(dark ? [] : oneDark);
+      }}
+    >
+      Enable {dark ? "light" : "dark"} mode
+    </button>
+  );
+}
 
 function DemoEditor() {
   const [state, setState] = useState(editorState);
@@ -26,6 +55,7 @@ function DemoEditor() {
         dispatchTransactions={dispatchTransactions}
         extensions={extensions}
       >
+        <ThemePicker />
         <CodeMirrorEditor />
       </CodeMirror>
     </main>

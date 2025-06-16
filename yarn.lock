@@ -648,6 +648,7 @@ __metadata:
     vite: "npm:^6.2.0"
     vitest: "npm:^3.0.7"
   peerDependencies:
+    "@codemirror/merge": "*"
     "@codemirror/state": "*"
     "@codemirror/view": "*"
     react: ">=17 <=19"

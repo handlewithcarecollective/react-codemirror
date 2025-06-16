@@ -76,6 +76,7 @@
   },
   "packageManager": "yarn@4.6.0",
   "peerDependencies": {
+    "@codemirror/merge": "*",
     "@codemirror/state": "*",
     "@codemirror/view": "*",
     "react": ">=17 <=19",
