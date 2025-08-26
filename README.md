@@ -21,9 +21,11 @@ yarn add @handlewithcare/react-codemirror
 
 - [Overview](#overview)
 - [Usage](#usage)
+  - [Dynamic extensions](#dynamic-extensions)
 - [API](#api)
   - [`CodeMirror`](#codemirror)
   - [`CodeMirrorEditor`](#codemirroreditor)
+  - [`react`](#react)
   - [`useEditorState`](#useeditorstate)
   - [`useCompartment`](#usecompartment)
   - [`useEditorEventCallback`](#useeditoreventcallback)
@@ -42,15 +44,17 @@ may support React-based widgets and tooltips.
 
 ## Usage
 
-To get started, render the `CodeMirror` and `CodeMirrorEditor` components:
+To get started, render the `CodeMirror` and `CodeMirrorEditor` components, and
+add the `react` extension to your EditorState:
 
 ```tsx
 import { EditorState, type Transaction } from "@codemirror/state";
-import { CodeMirror, CodeMirrorEditor } from "@handlewithcare/react-codemirror";
+import { CodeMirror, CodeMirrorEditor, react } from "@handlewithcare/react-codemirror";
 import { basicSetup } from "codemirror";
 import React, { StrictMode, useCallback, useState } from "react";
 
-const editorState = EditorState.create({ doc: "", basicSetup });
+// NOTE: You must also add the `react` extension to your EditorState!
+const editorState = EditorState.create({ doc: "", [basicSetup, react] });
 
 function CodeEditor() {
   const [state, setState] = useState(editorState);
@@ -74,6 +78,11 @@ function CodeEditor() {
 The `CodeMirrorEditor` is where the actual CodeMirror editor will be
 instantiated. It can be nested anywhere as a descendant of the `CodeMirror`
 component.
+
+The `react` extension is necessary for ensuring that the React state stays in
+sync with the CodeMirror EditorState.
+
+### Dynamic extensions
 
 The `useReconfigure` hook can be used to configure dynamic CodeMirror
 extensions. Here’s an example, using a simple theme switcher:
@@ -268,6 +277,15 @@ function CodeEditor() {
   );
 }
 ```
+
+### `react`
+
+```ts
+type Extension;
+```
+
+A CodeMirror extension that allows react-codemirror to keep React state in sync
+with CodeMirror state.
 
 ### `useEditorState`
 

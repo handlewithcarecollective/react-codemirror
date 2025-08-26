@@ -38,7 +38,7 @@
   },
   "devDependencies": {
     "@codemirror/lang-javascript": "^6.2.3",
-    "@codemirror/merge": "^6.9.0",
+    "@codemirror/lang-json": "^6.0.2",
     "@codemirror/state": "^6.5.2",
     "@codemirror/theme-one-dark": "^6.1.2",
     "@codemirror/view": "^6.36.3",
@@ -76,7 +76,6 @@
   },
   "packageManager": "yarn@4.6.0",
   "peerDependencies": {
-    "@codemirror/merge": "*",
     "@codemirror/state": "*",
     "@codemirror/view": "*",
     "react": ">=17 <=19",

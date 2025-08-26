@@ -6,3 +6,6 @@ export { useEditorEffect } from "./hooks/useEditorEffect.js";
 export { useEditorEventCallback } from "./hooks/useEditorEventCallback.js";
 export { useEditorState } from "./hooks/useEditorState.js";
 export { useReconfigure } from "./hooks/useReconfigure.js";
+import { tracking } from "./extensions/tracking.js";
+
+export const react = [tracking];
