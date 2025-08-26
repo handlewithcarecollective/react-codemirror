@@ -1,7 +1,8 @@
-import { diff } from "@codemirror/merge";
 import { EditorState, type Transaction } from "@codemirror/state";
 import { EditorView, type EditorViewConfig } from "@codemirror/view";
-import { useCallback, useLayoutEffect, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
+
+import { tracking } from "../extensions/tracking.js";
 
 export type UseViewOptions = Omit<EditorViewConfig, "parent"> & {
   defaultState?: EditorState;
@@ -39,6 +40,8 @@ export function useEditor(
   const defaultState = options.defaultState ?? EMPTY_STATE;
   const [_state, setState] = useState<EditorState>(defaultState);
   const state = options.state ?? _state;
+
+  const seen = useRef<Set<Transaction>>(new Set());
 
   const dispatchTransactions = useCallback(
     function dispatchTransactions(
@@ -86,36 +89,12 @@ export function useEditor(
       return;
     }
 
-    // Fully replace the state after reconfiguration. We don't have
-    // access to the effects that were used to produce the new state
-    // config, so we have to just do a brute force replace
-    // @ts-expect-error Internal properties
-    if (view.state.config !== state.config) {
-      view.setState(state);
-      return;
-    }
+    const trs = state.field(tracking);
+    const newTrs = trs.filter((tr) => !seen.current.has(tr));
 
-    if (
-      !view.state.doc.eq(state.doc) ||
-      !view.state.selection.eq(state.selection)
-    ) {
-      // This can take a few milliseconds on a large document,
-      // but it prevents codemirror from having to redo syntax
-      // highlighting, etc, from scratch on each update
-      const current = view.state.doc.toString();
-      const incoming = state.doc.toString();
-      const diffed = diff(current, incoming);
-
-      view.update([
-        view.state.update({
-          changes: diffed.map((change) => ({
-            from: change.fromA,
-            to: change.toA,
-            insert: incoming.slice(change.fromB, change.toB),
-          })),
-          selection: state.selection,
-        }),
-      ]);
+    if (newTrs.length) {
+      view.update(newTrs);
+      newTrs.forEach((tr) => seen.current.add(tr));
     }
   });
 
