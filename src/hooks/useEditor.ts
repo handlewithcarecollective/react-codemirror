@@ -41,7 +41,7 @@ export function useEditor(
   const [_state, setState] = useState<EditorState>(defaultState);
   const state = options.state ?? _state;
 
-  const seen = useRef<Set<Transaction>>(new Set());
+  const seen = useRef<Set<Transaction>>(new Set(state.field(tracking)));
 
   const dispatchTransactions = useCallback(
     function dispatchTransactions(
