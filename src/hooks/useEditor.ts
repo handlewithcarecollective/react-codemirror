@@ -1,6 +1,6 @@
 import { EditorState, type Transaction } from "@codemirror/state";
 import { EditorView, type EditorViewConfig } from "@codemirror/view";
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 import { tracking } from "../extensions/tracking.js";
 
@@ -43,27 +43,27 @@ export function useEditor(
 
   const seen = useRef<Set<Transaction>>(new Set(state.field(tracking)));
 
-  const dispatchTransactions = useCallback(
-    function dispatchTransactions(
-      trs: readonly Transaction[],
-      view: EditorView,
-    ) {
-      if (!options.state) {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        setState(trs[trs.length - 1]!.state);
-      }
+  function dispatchTransactions(trs: readonly Transaction[], view: EditorView) {
+    if (!options.state) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      setState(trs[trs.length - 1]!.state);
+    }
 
-      if (options.dispatchTransactions) {
-        options.dispatchTransactions(trs, view);
-      }
-    },
-    [options],
-  );
+    if (options.dispatchTransactions) {
+      options.dispatchTransactions(trs, view);
+    }
+  }
+  const dispatchTransactionsRef = useRef(dispatchTransactions);
 
   const config = {
     ...options,
     state,
-    dispatchTransactions,
+    dispatchTransactions: function (
+      trs: readonly Transaction[],
+      view: EditorView,
+    ) {
+      dispatchTransactionsRef.current(trs, view);
+    },
   };
 
   const [view, setView] = useState<EditorView | null>(null);
@@ -76,6 +76,8 @@ export function useEditor(
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useLayoutEffect(() => {
+    dispatchTransactionsRef.current = dispatchTransactions;
+
     if (!parent) {
       setView(null);
       return;
