@@ -139,7 +139,16 @@ function DemoEditor() {
         dispatchTransactions={dispatchTransactions}
         extensions={extensions}
       >
-        <ThemePicker />
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <ThemePicker />
+          <button
+            onClick={() => {
+              setState(editorState);
+            }}
+          >
+            Reset
+          </button>
+        </div>
         <CodeMirrorEditor />
       </CodeMirror>
     </main>
