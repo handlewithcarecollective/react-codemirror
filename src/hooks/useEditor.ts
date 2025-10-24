@@ -1,8 +1,11 @@
 import { EditorState, type Transaction } from "@codemirror/state";
 import { EditorView, type EditorViewConfig } from "@codemirror/view";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import { tracking } from "../extensions/tracking.js";
+
+import { useClientLayoutEffect } from "./useClientLayoutEffect.js";
+import { useEffectEvent } from "./useEffectEvent.js";
 
 export type UseViewOptions = Omit<EditorViewConfig, "parent"> & {
   defaultState?: EditorState;
@@ -68,35 +71,37 @@ export function useEditor(
 
   const [view, setView] = useState<EditorView | null>(null);
 
-  useLayoutEffect(() => {
-    return () => {
-      view?.destroy();
-    };
-  }, [view]);
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useLayoutEffect(() => {
-    dispatchTransactionsRef.current = dispatchTransactions;
-
-    if (!parent) {
-      setView(null);
-      return;
-    }
-    if (!view || view.dom.parentElement !== parent) {
-      const newView = new EditorView({
+  const createEditorView = useEffectEvent((parent: HTMLDivElement | null) => {
+    if (parent) {
+      return new EditorView({
         parent,
         ...config,
       });
-      setView(newView);
-      return;
     }
+    return null;
+  });
+
+  useClientLayoutEffect(() => {
+    const view = createEditorView(parent);
+    setView(view);
+
+    return () => {
+      view?.destroy();
+    };
+  }, [parent, createEditorView]);
+
+  useClientLayoutEffect(() => {
+    dispatchTransactionsRef.current = dispatchTransactions;
 
     const trs = state.field(tracking);
     const newTrs = trs.filter((tr) => !seen.current.has(tr));
 
-    if (newTrs.length) {
+    if (view && newTrs.length) {
       view.update(newTrs);
       newTrs.forEach((tr) => seen.current.add(tr));
+    } else if (view && view.state.doc.toString() !== state.doc.toString()) {
+      view.setState(state);
+      seen.current = new Set(trs);
     }
   });
 
