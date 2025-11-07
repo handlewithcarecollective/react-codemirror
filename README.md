@@ -22,12 +22,16 @@ yarn add @handlewithcare/react-codemirror
 - [Overview](#overview)
 - [Usage](#usage)
   - [Dynamic extensions](#dynamic-extensions)
+    - [`useReconfigure`](#usereconfigure)
+    - [`useSyncExtensions`](#usesyncextensions)
+  - [Other hooks](#other-hooks)
 - [API](#api)
   - [`CodeMirror`](#codemirror)
   - [`CodeMirrorEditor`](#codemirroreditor)
   - [`react`](#react)
   - [`useEditorState`](#useeditorstate)
-  - [`useCompartment`](#usecompartment)
+  - [`useReconfigure`](#usereconfigure-1)
+  - [`useSyncExtensions`](#usesyncextensions-1)
   - [`useEditorEventCallback`](#useeditoreventcallback)
   - [`useEditorEffect`](#useeditoreffect)
 - [Looking for someone to collaborate with?](#looking-for-someone-to-collaborate-with)
@@ -84,8 +88,13 @@ sync with the CodeMirror EditorState.
 
 ### Dynamic extensions
 
+#### `useReconfigure`
+
 The `useReconfigure` hook can be used to configure dynamic CodeMirror
-extensions. Here’s an example, using a simple theme switcher:
+extensions. The function returned by `useReconfigure` should only be used in an
+event callback. If you need to keep a compartment in sync with some external
+state, see [`useSyncExtensions`](#usesyncexetensions). Here’s an example with
+`useReconfigure`, using a simple theme switcher:
 
 ```tsx
 // ThemePicker.tsx
@@ -151,6 +160,61 @@ function CodeEditor() {
   );
 }
 ```
+
+#### `useSyncExtensions`
+
+The `useSyncExtensions` hook can be used keep the CodeMirror EditorState's
+extensions in sync with external state. In general, this should be avoided —
+it's better to either derive state _from_ your CodeMirror EditorState or lift
+the EditorState into your global/top-level state and update it at the same time
+as you update other state (like the user's theme). However, sometimes you need
+to have a local EditorState that is derived from state that lives higher up in
+the tree.
+
+The `useSyncExtensions` hook _must_ be used in the component that owns the
+EditorState, otherwise React will throw an error about updating state from
+another component.
+
+```tsx
+function ThemePicker() {
+  const theme = useSelector((state) => state.theme);
+  const dispatch = useDispatch();
+
+  return (
+    <button
+      onClick={() => {
+        dispatch(setTheme(theme === "light" ? "dark" : "light"));
+      }}
+    >
+      Enable {theme === "dark" ? "light" : "dark"} mode
+    </button>
+  );
+}
+
+function Editor() {
+  const [state, setState] = useState(editorState);
+
+  const theme = useSelector((state) => state.theme);
+  const themeExtension = theme === "light" ? [] : oneDark;
+  useSyncExtensions([themeCompartment], [themeExtension], state, setState);
+
+  const dispatchTransactions = useCallback((trs: readonly Transaction[]) => {
+    setState(trs[trs.length - 1].state);
+  }, []);
+
+  return (
+    <CodeMirror
+      state={state}
+      dispatchTransactions={dispatchTransactions}
+      extensions={extensions}
+    >
+      <CodeMirrorEditor />
+    </CodeMirror>
+  );
+}
+```
+
+### Other hooks
 
 The `useEditorEventCallback` hook is a more general purpose hook that allows
 components that are descendants of the `CodeMirror` component to dispatch a
@@ -295,7 +359,7 @@ function useEditorState(): EditorState;
 
 Provides access to the current EditorState value.
 
-### `useCompartment`
+### `useReconfigure`
 
 ```ts
 function useReconfigure(
@@ -330,6 +394,54 @@ export function ThemePicker() {
     >
       Enable {dark ? "light" : "dark"} mode
     </button>
+  );
+}
+```
+
+### `useSyncExtensions`
+
+```ts
+function useSyncExtensions(
+  compartments: Compartment[],
+  extensions: Extension[],
+  editorState: EditorState,
+  setEditorState: (editorState: EditorState) => void,
+): void;
+```
+
+Keep compartmentalized extensions in sync with external state.
+
+If the state that determines the value of a compartment necessarily lives
+outside the CodeMirror EditorState (say, an app-wide theme picker), this hook
+can be used to keep it in sync with the EditorState.
+
+To avoid state tearing, this hook calls the `setEditorState` argument in the
+render phase. This means that it _must_ be used in the component that owns the
+EditorState. If your EditorState lives in a global state manager, you should not
+use this hook.
+
+Example usage:
+
+```tsx
+function Editor() {
+  const [state, setState] = useState(editorState);
+
+  const theme = useSelector((state) => state.theme);
+  const themeExtension = theme === "light" ? [] : oneDark;
+  useSyncExtensions([themeCompartment], [themeExtension], state, setState);
+
+  const dispatchTransactions = useCallback((trs: readonly Transaction[]) => {
+    setState(trs[trs.length - 1].state);
+  }, []);
+
+  return (
+    <CodeMirror
+      state={state}
+      dispatchTransactions={dispatchTransactions}
+      extensions={extensions}
+    >
+      <CodeMirrorEditor />
+    </CodeMirror>
   );
 }
 ```

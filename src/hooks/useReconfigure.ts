@@ -14,7 +14,7 @@ import { useEditorEventCallback } from "./useEditorEventCallback.js";
  *   const state = useEditorState();
  *   const theme = themeCompartment.get(state);
  *   const dark = theme === oneDark;
- *   const reconfigureTheme = useReconfigure(themeCompartment)*;
+ *   const reconfigureTheme = useReconfigure(themeCompartment);
  *
  *   return (
  *     <button
