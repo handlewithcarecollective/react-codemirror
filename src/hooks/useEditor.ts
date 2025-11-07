@@ -46,36 +46,24 @@ export function useEditor(
 
   const seen = useRef<Set<Transaction>>(new Set(state.field(tracking)));
 
-  function dispatchTransactions(trs: readonly Transaction[], view: EditorView) {
-    if (!options.state) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      setState(trs[trs.length - 1]!.state);
-    }
-
-    if (options.dispatchTransactions) {
-      options.dispatchTransactions(trs, view);
-    }
-  }
-  const dispatchTransactionsRef = useRef(dispatchTransactions);
-
-  const config = {
-    ...options,
-    state,
-    dispatchTransactions: function (
-      trs: readonly Transaction[],
-      view: EditorView,
-    ) {
-      dispatchTransactionsRef.current(trs, view);
-    },
-  };
-
   const [view, setView] = useState<EditorView | null>(null);
 
   const createEditorView = useEffectEvent((parent: HTMLDivElement | null) => {
     if (parent) {
       return new EditorView({
         parent,
-        ...config,
+        ...options,
+        state,
+        dispatchTransactions(trs: readonly Transaction[], view: EditorView) {
+          if (!options.state) {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            setState(trs[trs.length - 1]!.state);
+          }
+
+          if (options.dispatchTransactions) {
+            options.dispatchTransactions(trs, view);
+          }
+        },
       });
     }
     return null;
@@ -91,8 +79,6 @@ export function useEditor(
   }, [parent, createEditorView]);
 
   useClientLayoutEffect(() => {
-    dispatchTransactionsRef.current = dispatchTransactions;
-
     const trs = state.field(tracking);
     const newTrs = trs.filter((tr) => !seen.current.has(tr));
 
